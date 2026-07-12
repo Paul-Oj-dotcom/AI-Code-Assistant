@@ -1,0 +1,7 @@
+print("="*40)
+print("AI CODE ASSISTANT")
+print("="*40)
+print("Lead AI Engineer : Paul")
+print("Technical Architect : IJALA")
+print("Project Status : ACTIVE")
+print("="*40)
