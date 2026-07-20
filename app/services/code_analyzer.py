@@ -1,7 +1,8 @@
 import ast
+
+from app.services.quality_scorer import QualityScorer
 from app.services.recommendation_engine import RecommendationEngine
 from app.services.smell_detector import SmellDetector
-from app.services.quality_scorer import QualityScorer
 
 
 class CodeAnalyzer:
@@ -16,6 +17,7 @@ class CodeAnalyzer:
                 "status": "error",
                 "message": str(e)
             }
+
         code_smells = SmellDetector.detect(tree)
 
         functions = 0
@@ -33,8 +35,28 @@ class CodeAnalyzer:
             elif isinstance(node, (ast.Import, ast.ImportFrom)):
                 imports += 1
 
-        lines = len(code.splitlines())
+        # File statistics
+        all_lines = code.splitlines()
 
+        lines = len(all_lines)
+
+        blank_lines = sum(
+            1 for line in all_lines
+            if line.strip() == ""
+        )
+
+        comment_lines = sum(
+            1 for line in all_lines
+            if line.strip().startswith("#")
+        )
+
+        code_lines = (
+            lines
+            - blank_lines
+            - comment_lines
+        )
+
+        # Complexity
         complexity = "Low"
 
         if functions > 5:
@@ -44,30 +66,33 @@ class CodeAnalyzer:
             complexity = "High"
 
         features = {
-             "lines": lines,
-             "functions": functions,
-             "classes": classes,
-             "imports": imports,
-             "complexity": complexity,
-       }
+            "lines": lines,
+            "blank_lines": blank_lines,
+            "comment_lines": comment_lines,
+            "code_lines": code_lines,
+            "functions": functions,
+            "classes": classes,
+            "imports": imports,
+            "complexity": complexity,
+        }
 
         quality_score, quality = QualityScorer.score(
             features,
             code_smells
-     )
+        )
 
         features["quality_score"] = quality_score
 
         recommendations = RecommendationEngine.generate(
             features,
             code_smells
-     )
+        )
+
         return {
             **features,
             "quality": quality,
             "recommendations": recommendations,
             "code_smells": code_smells
         }
-    # Sprint 010 WatchFiles test
 
     

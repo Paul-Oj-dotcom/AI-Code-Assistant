@@ -8,7 +8,21 @@ class SmellDetector:
 
         smells = []
 
+        imported_modules = set()
+        used_names = set()
+
         for node in ast.walk(tree):
+
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    imported_modules.add(alias.asname or alias.name)
+
+            elif isinstance(node, ast.ImportFrom):
+                for alias in node.names:
+                    imported_modules.add(alias.asname or alias.name)
+
+            if isinstance(node, ast.Name):
+                used_names.add(node.id)        
 
             # Detect functions without docstrings
             if isinstance(node, ast.FunctionDef):
@@ -39,5 +53,12 @@ class SmellDetector:
                     smells.append(
                         "Avoid using bare 'except:' clauses. Catch specific exceptions instead."
                     )
+
+        unused_imports = imported_modules - used_names
+
+        for module in sorted(unused_imports):
+            smells.append(
+                f"Unused import: '{module}'. Consider removing it."
+            )        
 
         return smells

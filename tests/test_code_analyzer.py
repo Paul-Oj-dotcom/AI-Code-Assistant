@@ -72,4 +72,32 @@ def hello(
     result = analyzer.analyze(code)
 
     assert result["status"] == "error"
-    assert "message" in result           
+    assert "message" in result   
+
+def test_unused_import_detected():
+    analyzer = CodeAnalyzer()
+
+    code = """
+import math
+import random
+
+print(math.pi)
+"""
+
+    result = analyzer.analyze(code)
+
+    assert "Unused import: 'random'. Consider removing it." in result["code_smells"]
+    assert "Unused import: 'math'. Consider removing it." not in result["code_smells"] 
+
+def test_used_import_not_reported():
+    analyzer = CodeAnalyzer()
+
+    code = """
+import math
+
+print(math.pi)
+"""
+
+    result = analyzer.analyze(code)
+
+    assert result["code_smells"] == []               
