@@ -39,7 +39,12 @@ class RecommendationEngine:
             elif "Unused import" in smell:
                 recommendations.add(
                     "Remove unused imports to improve code cleanliness and readability."
-                )   
+                )
+
+            elif "Unused variable" in smell:
+                recommendations.add(
+                    "Remove unused variables to improve code clarity and maintainability."
+              )       
 
         # Too many lines
         if features["lines"] > 200:

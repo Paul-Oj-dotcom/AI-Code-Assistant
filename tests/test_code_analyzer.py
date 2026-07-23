@@ -100,4 +100,19 @@ print(math.pi)
 
     result = analyzer.analyze(code)
 
-    assert result["code_smells"] == []               
+    assert result["code_smells"] == []
+
+def test_unused_variable_detected():
+    analyzer = CodeAnalyzer()
+
+    code = """
+x = 10
+y = 20
+
+print(x)
+"""
+
+    result = analyzer.analyze(code)
+
+    assert "Unused variable: 'y'. Consider removing it." in result["code_smells"]
+    assert "Unused variable: 'x'. Consider removing it." not in result["code_smells"]                   

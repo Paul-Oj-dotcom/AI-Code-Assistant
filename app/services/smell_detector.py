@@ -11,6 +11,9 @@ class SmellDetector:
         imported_modules = set()
         used_names = set()
 
+        assigned_variables = set()
+        used_variables = set()
+
         for node in ast.walk(tree):
 
             if isinstance(node, ast.Import):
@@ -22,7 +25,15 @@ class SmellDetector:
                     imported_modules.add(alias.asname or alias.name)
 
             if isinstance(node, ast.Name):
-                used_names.add(node.id)        
+                used_names.add(node.id)
+
+            if isinstance(node, ast.Name):
+
+                if isinstance(node.ctx, ast.Store):
+                    assigned_variables.add(node.id)
+
+                elif isinstance(node.ctx, ast.Load):
+                    used_variables.add(node.id)            
 
             # Detect functions without docstrings
             if isinstance(node, ast.FunctionDef):
@@ -59,6 +70,12 @@ class SmellDetector:
         for module in sorted(unused_imports):
             smells.append(
                 f"Unused import: '{module}'. Consider removing it."
-            )        
+            )
+        unused_variables = assigned_variables - used_variables
+
+        for variable in sorted(unused_variables):
+            smells.append(
+                f"Unused variable: '{variable}'. Consider removing it."
+            )            
 
         return smells
