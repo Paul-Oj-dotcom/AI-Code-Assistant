@@ -82,4 +82,10 @@ class RecommendationEngine:
                 "Code quality looks excellent"
             )
 
+        for smell in code_smells:
+            if "Unused parameter:" in smell:
+                recommendations.add(
+                    "Remove unused parameters to simplify function interfaces."
+            )    
+
         return list(recommendations)

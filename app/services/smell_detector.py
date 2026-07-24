@@ -14,6 +14,8 @@ class SmellDetector:
         assigned_variables = set()
         used_variables = set()
 
+        parameters = set()
+
         for node in ast.walk(tree):
 
             if isinstance(node, ast.Import):
@@ -37,6 +39,9 @@ class SmellDetector:
 
             # Detect functions without docstrings
             if isinstance(node, ast.FunctionDef):
+
+                for arg in node.args.args:
+                    parameters.add(arg.arg)
 
                 if ast.get_docstring(node) is None:
                     smells.append(
@@ -76,6 +81,13 @@ class SmellDetector:
         for variable in sorted(unused_variables):
             smells.append(
                 f"Unused variable: '{variable}'. Consider removing it."
-            )            
+            )
+
+        unused_parameters = parameters - used_variables
+
+        for parameter in sorted(unused_parameters):
+            smells.append(
+                f"Unused parameter: '{parameter}'. Consider removing it if unnecessary."
+          )                
 
         return smells
