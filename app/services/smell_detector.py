@@ -11,6 +11,8 @@ class SmellDetector:
         imported_modules = set()
         used_names = set()
 
+        duplicate_imports = set()
+
         assigned_variables = set()
         used_variables = set()
 
@@ -20,11 +22,23 @@ class SmellDetector:
 
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    imported_modules.add(alias.asname or alias.name)
+
+                    module = alias.asname or alias.name
+
+                    if module in imported_modules:
+                        duplicate_imports.add(module)
+
+                    imported_modules.add(module)
 
             elif isinstance(node, ast.ImportFrom):
                 for alias in node.names:
-                    imported_modules.add(alias.asname or alias.name)
+
+                    module = alias.asname or alias.name
+
+                    if module in imported_modules:
+                        duplicate_imports.add(module)
+
+                    imported_modules.add(module)
 
             if isinstance(node, ast.Name):
                 used_names.add(node.id)
@@ -76,6 +90,11 @@ class SmellDetector:
             smells.append(
                 f"Unused import: '{module}'. Consider removing it."
             )
+
+        for module in sorted(duplicate_imports):
+            smells.append(
+                f"Duplicate import: '{module}'. Consider removing the duplicate import."
+         )    
         unused_variables = assigned_variables - used_variables
 
         for variable in sorted(unused_variables):

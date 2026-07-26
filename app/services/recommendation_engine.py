@@ -41,6 +41,11 @@ class RecommendationEngine:
                     "Remove unused imports to improve code cleanliness and readability."
                 )
 
+            elif "Duplicate import" in smell:
+                recommendations.add(
+                    "Remove duplicate imports to keep the code clean and avoid redundancy."
+       )    
+
             elif "Unused variable" in smell:
                 recommendations.add(
                     "Remove unused variables to improve code clarity and maintainability."

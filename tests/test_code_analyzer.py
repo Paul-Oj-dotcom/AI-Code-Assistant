@@ -115,4 +115,24 @@ print(x)
     result = analyzer.analyze(code)
 
     assert "Unused variable: 'y'. Consider removing it." in result["code_smells"]
-    assert "Unused variable: 'x'. Consider removing it." not in result["code_smells"]                   
+    assert "Unused variable: 'x'. Consider removing it." not in result["code_smells"]
+
+def test_unused_parameter_detected():
+    analyzer = CodeAnalyzer()
+
+    code = """
+def greet(name, age):
+    print(name)
+"""
+
+    result = analyzer.analyze(code)
+
+    assert (
+        "Unused parameter: 'age'. Consider removing it if unnecessary."
+        in result["code_smells"]
+    )
+
+    assert (
+        "Remove unused parameters to simplify function interfaces."
+        in result["recommendations"]
+    )                       
