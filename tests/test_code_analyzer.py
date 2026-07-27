@@ -135,4 +135,20 @@ def greet(name, age):
     assert (
         "Remove unused parameters to simplify function interfaces."
         in result["recommendations"]
-    )                       
+    )
+def test_duplicate_import_detected():
+
+    analyzer = CodeAnalyzer()
+
+    code = """
+import math
+import random
+import math
+"""
+
+    result = analyzer.analyze(code)
+
+    assert (
+        "Duplicate import: 'math'. Consider removing the duplicate import."
+        in result["code_smells"]
+    )                           
