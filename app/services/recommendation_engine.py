@@ -22,10 +22,16 @@ class RecommendationEngine:
         # Recommendations based on detected code smells
         for smell in code_smells:
 
+
             if "missing a docstring" in smell:
                 recommendations.add(
                     "Add docstrings to improve code readability and maintainability."
                 )
+
+            elif "missing type hints" in smell:
+                recommendations.add(
+                     "Add type hints to improve readability and static analysis."
+                )    
 
             elif "bare 'except:'" in smell:
                 recommendations.add(
@@ -44,12 +50,17 @@ class RecommendationEngine:
             elif "Duplicate import" in smell:
                 recommendations.add(
                     "Remove duplicate imports to keep the code clean and avoid redundancy."
-       )    
+                )    
 
             elif "Unused variable" in smell:
                 recommendations.add(
                     "Remove unused variables to improve code clarity and maintainability."
-              )       
+               )
+
+            elif "deeply nested" in smell:
+                recommendations.add(
+                    "Reduce nested blocks by extracting helper functions or using early returns."
+               )           
 
         # Too many lines
         if features["lines"] > 200:
@@ -91,6 +102,6 @@ class RecommendationEngine:
             if "Unused parameter:" in smell:
                 recommendations.add(
                     "Remove unused parameters to simplify function interfaces."
-            )    
+            )           
 
         return list(recommendations)

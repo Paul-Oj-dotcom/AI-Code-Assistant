@@ -151,4 +151,62 @@ import math
     assert (
         "Duplicate import: 'math'. Consider removing the duplicate import."
         in result["code_smells"]
-    )                           
+    )
+
+def test_deeply_nested_function_detected():
+
+    analyzer = CodeAnalyzer()
+
+    code = """
+def process():
+    if True:
+        for i in range(5):
+            if i > 0:
+                while i < 3:
+                    try:
+                        print(i)
+                    except Exception:
+                        pass
+"""
+
+    result = analyzer.analyze(code)
+
+    assert any(
+        "deeply nested" in smell
+        for smell in result["code_smells"]
+    )
+
+    assert any(
+        "Reduce nested blocks"
+        in recommendation
+        for recommendation in result["recommendations"]
+    )
+
+def test_missing_type_hints_recommendation():
+
+    analyzer = CodeAnalyzer()
+
+    code = """
+def add(a, b):
+    return a + b
+"""
+
+    result = analyzer.analyze(code)
+
+    assert any(
+        "type hints" in recommendation.lower()
+        for recommendation in result["recommendations"]
+    )
+
+def test_missing_type_hints_affects_quality_score():
+
+    analyzer = CodeAnalyzer()
+
+    code = """
+def add(a, b):
+    return a + b
+"""
+
+    result = analyzer.analyze(code)
+
+    assert result["quality_score"] < 100

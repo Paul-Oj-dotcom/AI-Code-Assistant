@@ -4,13 +4,45 @@ import ast
 class SmellDetector:
 
     @staticmethod
+    def get_max_nesting(node, depth=0):
+        """
+        Recursively determine the maximum nesting depth of
+        control-flow statements within a node.
+        """
+        max_depth = depth
+
+        for child in ast.iter_child_nodes(node):
+
+            if isinstance(
+                child,
+                (
+                    ast.If,
+                    ast.For,
+                    ast.While,
+                    ast.Try,
+                    ast.With,
+                    ast.Match,
+                ),
+            ):
+                max_depth = max(
+                    max_depth,
+                    SmellDetector.get_max_nesting(child, depth + 1),
+                )
+            else:
+                max_depth = max(
+                    max_depth,
+                    SmellDetector.get_max_nesting(child, depth),
+                )
+
+        return max_depth
+
+    @staticmethod
     def detect(tree):
 
         smells = []
 
         imported_modules = set()
         used_names = set()
-
         duplicate_imports = set()
 
         assigned_variables = set()
@@ -20,7 +52,11 @@ class SmellDetector:
 
         for node in ast.walk(tree):
 
+            # --------------------------
+            # Imports
+            # --------------------------
             if isinstance(node, ast.Import):
+
                 for alias in node.names:
 
                     module = alias.asname or alias.name
@@ -31,6 +67,7 @@ class SmellDetector:
                     imported_modules.add(module)
 
             elif isinstance(node, ast.ImportFrom):
+
                 for alias in node.names:
 
                     module = alias.asname or alias.name
@@ -40,43 +77,74 @@ class SmellDetector:
 
                     imported_modules.add(module)
 
+            # --------------------------
+            # Used names / variables
+            # --------------------------
             if isinstance(node, ast.Name):
-                used_names.add(node.id)
 
-            if isinstance(node, ast.Name):
+                used_names.add(node.id)
 
                 if isinstance(node.ctx, ast.Store):
                     assigned_variables.add(node.id)
 
                 elif isinstance(node.ctx, ast.Load):
-                    used_variables.add(node.id)            
+                    used_variables.add(node.id)
 
-            # Detect functions without docstrings
+            # --------------------------
+            # Function checks
+            # --------------------------
             if isinstance(node, ast.FunctionDef):
 
                 for arg in node.args.args:
                     parameters.add(arg.arg)
 
+                # Missing docstring
                 if ast.get_docstring(node) is None:
                     smells.append(
                         f"Function '{node.name}' is missing a docstring."
                     )
-                # Detect functions with too many parameters
+
+                # Missing type hints
+                missing_parameter_hints = any(
+                    arg.annotation is None
+                    for arg in node.args.args
+               )
+
+                missing_return_hint = node.returns is None
+
+                if missing_parameter_hints or missing_return_hint:
+                    smells.append(
+                        f"Function '{node.name}' is missing type hints."
+                   )    
+
+                # Too many parameters
                 if len(node.args.args) > 5:
                     smells.append(
-                        f"Function '{node.name}' has too many parameters ({len(node.args.args)}). Consider grouping related parameters into a class or dictionary."
+                        f"Function '{node.name}' has too many parameters ({len(node.args.args)}). "
+                        "Consider grouping related parameters into a class or dictionary."
                     )
-                 # Detect long functions
-                function_length = (
-                    node.end_lineno - node.lineno
-               )
+
+                # Long function
+                function_length = node.end_lineno - node.lineno
 
                 if function_length > 50:
                     smells.append(
-                        f"Function '{node.name}' is too long ({function_length} lines). Consider breaking it into smaller functions."
-                   )       
+                        f"Function '{node.name}' is too long ({function_length} lines). "
+                        "Consider breaking it into smaller functions."
+                    )
 
-            # Detect bare except clauses
+                # Deep nesting
+                nesting_depth = SmellDetector.get_max_nesting(node)
+
+                if nesting_depth > 4:
+                    smells.append(
+                        f"Function '{node.name}' is deeply nested ({nesting_depth} levels). "
+                        "Consider simplifying the control flow."
+                    )    
+
+            # --------------------------
+            # Bare except
+            # --------------------------
             elif isinstance(node, ast.ExceptHandler):
 
                 if node.type is None:
@@ -84,6 +152,9 @@ class SmellDetector:
                         "Avoid using bare 'except:' clauses. Catch specific exceptions instead."
                     )
 
+        # --------------------------
+        # Unused imports
+        # --------------------------
         unused_imports = imported_modules - used_names
 
         for module in sorted(unused_imports):
@@ -91,10 +162,17 @@ class SmellDetector:
                 f"Unused import: '{module}'. Consider removing it."
             )
 
+        # --------------------------
+        # Duplicate imports
+        # --------------------------
         for module in sorted(duplicate_imports):
             smells.append(
                 f"Duplicate import: '{module}'. Consider removing the duplicate import."
-         )    
+            )
+
+        # --------------------------
+        # Unused variables
+        # --------------------------
         unused_variables = assigned_variables - used_variables
 
         for variable in sorted(unused_variables):
@@ -102,11 +180,14 @@ class SmellDetector:
                 f"Unused variable: '{variable}'. Consider removing it."
             )
 
+        # --------------------------
+        # Unused parameters
+        # --------------------------
         unused_parameters = parameters - used_variables
 
         for parameter in sorted(unused_parameters):
             smells.append(
                 f"Unused parameter: '{parameter}'. Consider removing it if unnecessary."
-          )                
+            )
 
         return smells
