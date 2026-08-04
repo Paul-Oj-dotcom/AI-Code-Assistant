@@ -210,3 +210,19 @@ def add(a, b):
     result = analyzer.analyze(code)
 
     assert result["quality_score"] < 100
+
+def test_missing_return_type_hint_detected():
+
+    analyzer = CodeAnalyzer()
+
+    code = """
+def add(a: int, b: int):
+    return a + b
+"""
+
+    result = analyzer.analyze(code)
+
+    assert any(
+        "return type hint" in smell.lower()
+        for smell in result["code_smells"]
+    )    

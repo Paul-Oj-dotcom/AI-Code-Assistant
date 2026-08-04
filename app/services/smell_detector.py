@@ -104,19 +104,22 @@ class SmellDetector:
                         f"Function '{node.name}' is missing a docstring."
                     )
 
-                # Missing type hints
+                # Missing parameter type hints
                 missing_parameter_hints = any(
                     arg.annotation is None
                     for arg in node.args.args
-               )
+                )
 
-                missing_return_hint = node.returns is None
-
-                if missing_parameter_hints or missing_return_hint:
+                if missing_parameter_hints:
                     smells.append(
-                        f"Function '{node.name}' is missing type hints."
-                   )    
+                       f"Function '{node.name}' is missing parameter type hints."
+                    )
 
+                # Missing return type hint
+                if node.returns is None:
+                    smells.append(
+                        f"Function '{node.name}' is missing a return type hint."
+                  )
                 # Too many parameters
                 if len(node.args.args) > 5:
                     smells.append(

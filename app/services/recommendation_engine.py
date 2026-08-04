@@ -27,9 +27,10 @@ class RecommendationEngine:
                 recommendations.add(
                     "Add docstrings to improve code readability and maintainability."
                 )
+    
 
-            elif "missing type hints" in smell:
-                recommendations.add(
+            elif "missing parameter type hints" in smell or "return type hint" in smell:
+                 recommendations.add(
                      "Add type hints to improve readability and static analysis."
                 )    
 

@@ -28,6 +28,9 @@ class QualityScorer:
             if "missing a docstring" in smell:
                 quality_score -= 5
 
+            elif "missing type hints" in smell:
+                quality_score -= 3      
+
             elif "bare 'except:'" in smell:
                  quality_score -= 10
 
@@ -36,6 +39,8 @@ class QualityScorer:
 
             elif "too long" in smell:
                  quality_score -= 10
+
+              
 
         quality = "Poor"
 
