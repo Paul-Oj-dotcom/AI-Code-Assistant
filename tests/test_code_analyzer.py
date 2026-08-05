@@ -225,4 +225,50 @@ def add(a: int, b: int):
     assert any(
         "return type hint" in smell.lower()
         for smell in result["code_smells"]
-    )    
+    )
+def test_missing_class_docstring_detected():
+
+    analyzer = CodeAnalyzer()
+
+    code = """
+class Person:
+    def __init__(self, name):
+        self.name = name
+"""
+
+    result = analyzer.analyze(code)
+
+    assert any(
+        "class" in smell.lower() and "missing a docstring" in smell.lower()
+        for smell in result["code_smells"]
+    )
+def test_missing_class_docstring_recommendation():
+
+    analyzer = CodeAnalyzer()
+
+    code = """
+class Person:
+    def __init__(self, name):
+        self.name = name
+"""
+
+    result = analyzer.analyze(code)
+
+    assert any(
+        "classes" in recommendation.lower()
+        and "docstrings" in recommendation.lower()
+        for recommendation in result["recommendations"]
+    )
+def test_missing_class_docstring_affects_quality_score():
+
+    analyzer = CodeAnalyzer()
+
+    code = """
+class Person:
+    def __init__(self, name):
+        self.name = name
+"""
+
+    result = analyzer.analyze(code)
+
+    assert result["quality_score"] < 100                

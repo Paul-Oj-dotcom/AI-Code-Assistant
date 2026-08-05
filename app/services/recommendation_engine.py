@@ -22,8 +22,12 @@ class RecommendationEngine:
         # Recommendations based on detected code smells
         for smell in code_smells:
 
+            if "Class" in smell and "missing a docstring" in smell:
+                recommendations.add(
+                    "Add docstrings to classes to improve documentation and maintainability."
+                )  
 
-            if "missing a docstring" in smell:
+            elif "missing a docstring" in smell:
                 recommendations.add(
                     "Add docstrings to improve code readability and maintainability."
                 )

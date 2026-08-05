@@ -143,7 +143,16 @@ class SmellDetector:
                     smells.append(
                         f"Function '{node.name}' is deeply nested ({nesting_depth} levels). "
                         "Consider simplifying the control flow."
-                    )    
+                    ) 
+            # --------------------------
+            # Class checks
+            # --------------------------
+            elif isinstance(node, ast.ClassDef):
+
+                if ast.get_docstring(node) is None:
+                    smells.append(
+                        f"Class '{node.name}' is missing a docstring."
+             )           
 
             # --------------------------
             # Bare except
