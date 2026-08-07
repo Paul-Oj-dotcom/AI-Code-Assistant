@@ -271,4 +271,57 @@ class Person:
 
     result = analyzer.analyze(code)
 
-    assert result["quality_score"] < 100                
+    assert result["quality_score"] < 100 
+
+def test_class_with_docstring_not_flagged():
+
+    analyzer = CodeAnalyzer()
+
+    code = """
+class Person:
+    \"\"\"Represent a person.\"\"\"
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+"""
+
+    result = analyzer.analyze(code)
+
+    assert not any(
+        "class" in smell.lower()
+        and "missing a docstring" in smell.lower()
+        for smell in result["code_smells"]
+    )
+
+def test_complete_type_hints_not_flagged():
+
+    analyzer = CodeAnalyzer()
+
+    code = """
+def add(a: int, b: int) -> int:
+    '''Add two integers.'''
+    return a + b
+"""
+
+    result = analyzer.analyze(code)
+
+    assert not any(
+        "type hint" in smell.lower()
+        for smell in result["code_smells"]
+    )
+
+def test_clean_code_has_excellent_quality():
+
+    analyzer = CodeAnalyzer()
+
+    code = """
+def add(a: int, b: int) -> int:
+    \"\"\"Add two integers.\"\"\"
+    return a + b
+"""
+
+    result = analyzer.analyze(code)
+
+    assert result["code_smells"] == []
+    assert result["quality_score"] >= 90
+    assert result["quality"] == "Excellent"                           
