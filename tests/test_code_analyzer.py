@@ -324,4 +324,60 @@ def add(a: int, b: int) -> int:
 
     assert result["code_smells"] == []
     assert result["quality_score"] >= 90
-    assert result["quality"] == "Excellent"                           
+    assert result["quality"] == "Excellent" 
+
+def test_used_parameter_not_flagged_when_used_inside_function():
+    code = """
+def greet(name):
+    return name
+"""
+
+    result = CodeAnalyzer().analyze(code)
+
+    assert not any(
+        "Unused parameter: 'name'" in smell
+        for smell in result["code_smells"]
+    )
+
+
+def test_unused_parameter_detected_per_function_scope():
+    code = """
+def first(name):
+    return name
+
+
+def second(age):
+    return 10
+"""
+
+    result = CodeAnalyzer().analyze(code)
+
+    assert any(
+        "Unused parameter: 'age'" in smell
+        for smell in result["code_smells"]
+    )
+
+    assert not any(
+        "Unused parameter: 'name'" in smell
+        for smell in result["code_smells"]
+    )
+
+def test_unused_parameter_not_hidden_by_same_name_in_another_function():
+    code = """
+def first(name):
+    return 10
+
+
+def second(name):
+    return name
+"""
+
+    result = CodeAnalyzer().analyze(code)
+
+    assert any(
+        "Unused parameter: 'name'" in smell
+        for smell in result["code_smells"]
+    )
+
+
+                              
